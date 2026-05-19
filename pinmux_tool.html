@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云途 YTM32 引脚配置工具</title>
+<style>
+:root {
+  --bg: #f5f5f5;
+  --bg-card: #fff;
+  --text: #333;
+  --text-secondary: #666;
+  --border: #ddd;
+  --accent: #1a73e8;
+  --accent-hover: #1557b0;
+  --danger: #d93025;
+  --warning: #f9ab00;
+  --success: #1e8e3e;
+  --power-color: #fce8e6;
+  --gnd-color: #e8eaed;
+  --clock-color: #e8f5e9;
+  --debug-color: #fff3e0;
+  --row-configured: #e8f0fe;
+  --row-conflict: #fce8e6;
+  --scrollbar-thumb: #c1c1c1;
+  --scrollbar-track: #f1f1f1;
+  --font-mono: 'Consolas','Courier New',monospace;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.toolbar .logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  margin-right: 8px;
+}
+.toolbar select, .toolbar button, .toolbar input {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 14px;
+  background: var(--bg-card);
+  cursor: pointer;
+}
+.toolbar select:hover, .toolbar button:hover {
+  border-color: var(--accent);
+}
+.toolbar button {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.toolbar button:hover { background: var(--accent-hover); }
+.toolbar button.secondary {
+  background: var(--bg-card);
+  color: var(--text);
+  border-color: var(--border);
+}
+.toolbar button.secondary:hover { border-color: var(--accent); color: var(--accent); }
+.toolbar input[type=text] {
+  width: 200px;
+  cursor: text;
+}
+.toolbar .spacer { flex:1; }
+.toolbar .stats {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Main Layout */
+.main-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr 260px;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* Left: Peripheral Tree */
+.sidebar-left {
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.sidebar-left h3 {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 2;
+}
+.periph-group { border-bottom: 1px solid #eee; }
+.periph-group-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  user-select: none;
+}
+.periph-group-header:hover { background: #f0f4ff; }
+.periph-group-header .arrow {
+  font-size: 10px;
+  margin-right: 6px;
+  transition: transform 0.15s;
+  width: 12px;
+  text-align: center;
+}
+.periph-group-header .arrow.open { transform: rotate(90deg); }
+.periph-group-header .group-name { flex: 1; }
+.periph-group-header .group-status {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+}
+.periph-group-header .group-status.partial { background: var(--warning); }
+.periph-group-header .group-status.complete { background: var(--success); }
+.periph-instance {
+  padding: 3px 14px 3px 28px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.periph-instance:hover { background: #f0f4ff; color: var(--accent); }
+.periph-instance.active {
+  background: #e8f0fe;
+  color: var(--accent);
+  font-weight: 600;
+  border-radius: 3px;
+}
+.periph-signal {
+  padding: 2px 14px 2px 42px;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.periph-signal:hover { background: #f0f4ff; }
+.periph-signal .signal-name { color: var(--text-secondary); }
+.periph-signal .signal-pin {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+}
+.periph-signal .signal-pin.unmapped { color: #ccc; font-style: italic; }
+.periph-children { display: none; }
+.periph-children.open { display: block; }
+
+/* Center: Pin Table */
+.center-table {
+  overflow-y: auto;
+  overflow-x: auto;
+  background: var(--bg-card);
+}
+.center-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.center-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  border-bottom: 2px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 2;
+  font-size: 12px;
+}
+.center-table tbody td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  white-space: nowrap;
+}
+.center-table tbody tr:hover { background: #f8f9ff; }
+.center-table tbody tr.row-configured { background: var(--row-configured); }
+.center-table tbody tr.row-conflict { background: var(--row-conflict); }
+.center-table tbody tr.row-power { background: var(--power-color); color: #999; }
+.center-table tbody tr.row-gnd { background: var(--gnd-color); color: #999; }
+.center-table tbody tr.row-clock { background: var(--clock-color); }
+.center-table tbody tr.row-debug { background: var(--debug-color); }
+.center-table tbody tr.row-highlighted {
+  box-shadow: inset 4px 0 0 #f9ab00;
+  background: #fffde7 !important;
+}
+.center-table td.pin-num {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.center-table td.pin-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+/* PIN_MUX cell */
+.center-table td.pinmux-col {
+  font-size: 11px;
+  line-height: 1.5;
+  max-width: 400px;
+  word-break: break-all;
+}
+.pinmux-func { color: #888; }
+.pinmux-selected { color: #d93025; font-weight: 700; }
+.pinmux-sep { color: #ccc; }
+.center-table select.func-select {
+  font-size: 12px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  min-width: 140px;
+  font-family: var(--font-mono);
+}
+.center-table select.func-select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.15);
+}
+.center-table .default-func {
+  color: #999;
+  font-style: italic;
+}
+.center-table input.note-input {
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  width: 120px;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.center-table input.note-input:hover {
+  border-color: #ccc;
+}
+.center-table input.note-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  background: #fff;
+}
+
+/* Right: Pin Detail */
+.sidebar-right {
+  background: var(--bg-card);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 14px;
+}
+.sidebar-right h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-right .detail-item {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.sidebar-right .detail-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.sidebar-right .detail-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.sidebar-right .alt-list {
+  list-style: none;
+  margin-top: 8px;
+}
+.sidebar-right .alt-list li {
+  padding: 5px 8px;
+  margin: 2px 0;
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px solid transparent;
+}
+.sidebar-right .alt-list li:hover { background: #f0f4ff; }
+.sidebar-right .alt-list li.selected {
+  background: var(--row-configured);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Watermark */
+.watermark {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 10px;
+  color: #ccc;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+.watermark:hover { opacity: 0.8; color: #999; }
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 16px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.footer .conflict-count {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background:var(--scrollbar-thumb); border-radius:3px; }
+
+/* Print */
+@media print {
+  .sidebar-left, .sidebar-right, .toolbar, .footer { display: none !important; }
+  .main-layout { display: block !important; }
+  .center-table { overflow: visible !important; }
+  .center-table thead th { position: static !important; }
+}
+
+/* Toast notification */
+.toast-container {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.toast {
+  background: #d93025;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+  white-space: nowrap;
+}
+@keyframes toastIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes toastOut { from { opacity:1; } to { opacity:0; } }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+.empty-state h2 { font-size: 20px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <span class="logo">YTM32 PinMux</span>
+  <label>芯片:</label>
+  <select id="chipSelect"></select>
+  <label>封装:</label>
+  <select id="packageSelect"></select>
+  <input type="text" id="filterInput" placeholder="搜索引脚名/功能...">
+  <button id="exportHtmlBtn" class="secondary" title="导出为HTML文件，可用浏览器打开">导出 HTML</button>
+  <button id="exportExcelBtn" class="secondary" title="导出为Excel文件(.xls)，可用Excel/WPS打开">导出 Excel</button>
+  <button id="printBtn" class="secondary" title="打印">打印</button>
+  <span class="spacer"></span>
+  <span class="stats" id="statsText"></span>
+</div>
+
+<!-- Main Layout -->
+<div class="main-layout">
+  <!-- Left: Peripheral Tree -->
+  <div class="sidebar-left" id="periphTree">
+    <h3>外设模块</h3>
+    <div id="periphTreeContent"></div>
+  </div>
+
+  <!-- Center: Pin Table -->
+  <div class="center-table" id="pinTableContainer">
+    <table>
+      <thead>
+        <tr>
+          <th>引脚号</th>
+          <th>引脚名</th>
+          <th>PIN_MUX</th>
+          <th>当前功能</th>
+          <th>备注</th>
+          <th>驱动能力</th>
+          <th>WKU</th>
+          <th>默认状态</th>
+        </tr>
+      </thead>
+      <tbody id="pinTableBody"></tbody>
+    </table>
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <h2>请选择芯片型号</h2>
+      <p>在上方工具栏中选择芯片和封装，开始配置引脚</p>
+    </div>
+  </div>
+
+  <!-- Right: Pin Detail -->
+  <div class="sidebar-right" id="pinDetail">
+    <h3>引脚详情</h3>
+    <div id="pinDetailContent">
+      <p style="color:#999;">点击表格中的行查看引脚详情</p>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <span id="footerConfigured">已配置: 0</span>
+  <span id="footerConflicts" class="conflict-count" style="display:none;">冲突: 0</span>
+  <span id="footerUnconfigured">未配置: 0</span>
+  <span class="spacer"></span>
+  <span id="footerChip"></span>
+</div>
+
+<!-- Data -->
+<script src="pinmux_data.js"></script>
+
+<script>
+// ======================== Application State ========================
+const state = {
+  chipName: null,
+  packageName: null,
+  pinConfigs: {},     // { pinName: selectedAltFunc | null }
+  pinNotes: {},       // { pinName: customNote | null }
+  filterText: '',
+  selectedPin: null,
+  highlightGroup: null,      // e.g. 'SPI'
+  highlightInstance: null,   // e.g. 1 (or null to highlight all instances of the group)
+  highlightSignal: null,     // e.g. 'SCK' (signal-level highlight, must also have group+instance)
+};
+
+// ======================== Peripheral Classification ========================
+const PERIPHERAL_DEFS = [
+  { group: 'SPI',    regex: /^SPI(\d+)_(.+)$/,       signals: ['SCK','SIN','SOUT','PCS0','PCS1','PCS2','PCS3','PCS4','PCS5','PCS6','PCS7'] },
+  { group: 'CAN',    regex: /^CAN(\d+)_(TX|RX)$/,     signals: ['TX','RX'] },
+  { group: 'UART',   regex: /^LINFlexD(\d+)_(TX|RX)$/, signals: ['TX','RX'] },
+  { group: 'eTMR',   regex: /^eTMR(\d+)_(.+)$/,        signals: null },
+  { group: 'I2C',    regex: /^I2C(\d+)_(SCL|SDA)$/,    signals: ['SCL','SDA'] },
+  { group: 'MPWM',   regex: /^MPWM(\d+)_(.+)$/,        signals: null },
+  { group: 'QSPI',   regex: /^QSPI_(.+)$/,             signals: null },
+  { group: 'ENET',   regex: /^ENET_(.+)$/,              signals: null },
+  { group: 'SAI',    regex: /^SAI(\d+)_(.+)$/,         signals: null },
+  { group: 'TMU',    regex: /^TMU_(.+)$/,               signals: null },
+  { group: 'ADC',    regex: /^ADC(\d+)_S(\d+).*$/,     signals: null },
+  { group: 'DAC',    regex: /^DAC(\d+)_OUT.*$/,        signals: null },
+  { group: 'ACMP',   regex: /^ACMP(\d+)_(.+)$/,        signals: null },
+  { group: 'ETM',    regex: /^ETM_(.+)$/,               signals: null },
+  { group: 'SENT',   regex: /^SENT(\d+)_(.+)$/,        signals: null },
+  { group: 'FMU',    regex: /^FMU_(.+)$/,               signals: null },
+  { group: 'CLKOUT', regex: /^(SCU_CLKOUT|CLKOUT_RUN|CLKOUT_STANDBY|RTC_CLKOUT)$/, signals: null },
+  { group: 'LPTMR',  regex: /^LPTMR(\d+)_ALT(\d+)$/,   signals: null },
+  { group: 'TCLK',   regex: /^TCLK_(IN|OUT)(\d*)$/,    signals: null },
+  { group: 'JTAG',   regex: /^(JTAG_.*|SWD_.*|SWO)$/,  signals: null },
+];
+
+function parseFuncName(funcName) {
+  if (!funcName) return null;
+  for (const def of PERIPHERAL_DEFS) {
+    const m = funcName.match(def.regex);
+    if (m) {
+      if (def.regex.toString().includes('^QSPI_') || def.regex.toString().includes('^TMU_') ||
+          def.regex.toString().includes('^ENET_') || def.regex.toString().includes('^FMU_') ||
+          def.regex.toString().includes('^ETM_') || def.regex.toString().includes('^JTAG_') ||
+          def.regex.toString().includes('^(SCU_|CLKOUT|RTC_CLKOUT)') || def.regex.toString().includes('^TCLK_')) {
+        return { group: def.group, instance: 0, signal: funcName };
+      }
+      if (def.group === 'ADC') return { group: def.group, instance: parseInt(m[1]), signal: 'S' + m[2] };
+      return { group: def.group, instance: parseInt(m[1]), signal: m[2] };
+    }
+  }
+  return null;
+}
+
+// Explicit regex check helpers
+function parsePeriph(funcName) {
+  if (!funcName) return null;
+  let m;
+  // SPI
+  if ((m = funcName.match(/^SPI(\d+)_(.+)$/))) return { group:'SPI', instance:parseInt(m[1]), signal:m[2] };
+  // CAN
+  if ((m = funcName.match(/^CAN(\d+)_(TX|RX)$/))) return { group:'CAN', instance:parseInt(m[1]), signal:m[2] };
+  // LINFlexD (UART-style FlexIO)
+  if ((m = funcName.match(/^LINFlexD(\d+)_(TX|RX)$/))) return { group:'UART', instance:parseInt(m[1]), signal:m[2] };
+  // UART (direct naming)
+  if ((m = funcName.match(/^UART(\d+)_(TX|RX|RTS|CTS)$/))) return { group:'UART', instance:parseInt(m[1]), signal:m[2] };
+  // eTMR
+  if ((m = funcName.match(/^eTMR(\d+)_(.+)$/))) return { group:'eTMR', instance:parseInt(m[1]), signal:m[2] };
+  // I2C
+  if ((m = funcName.match(/^I2C(\d+)_(SCL|SDA)$/))) return { group:'I2C', instance:parseInt(m[1]), signal:m[2] };
+  // MPWM
+  if ((m = funcName.match(/^MPWM(\d+)_(.+)$/))) return { group:'MPWM', instance:parseInt(m[1]), signal:m[2] };
+  // QSPI
+  if ((m = funcName.match(/^QSPI_(.+)$/))) return { group:'QSPI', instance:0, signal:m[1] };
+  // ENET
+  if ((m = funcName.match(/^ENET_(.+)$/))) return { group:'ENET', instance:0, signal:m[1] };
+  // SAI
+  if ((m = funcName.match(/^SAI(\d+)_(.+)$/))) return { group:'SAI', instance:parseInt(m[1]), signal:m[2] };
+  // TMU
+  if ((m = funcName.match(/^TMU_(.+)$/))) return { group:'TMU', instance:0, signal:m[1] };
+  // ADC SE variant (single-ended)
+  if ((m = funcName.match(/^ADC(\d+)_SE(\d+)/))) return { group:'ADC', instance:parseInt(m[1]), signal:'SE'+m[2] };
+  // ADC S variant
+  if ((m = funcName.match(/^ADC(\d+)_S(\d+)/))) return { group:'ADC', instance:parseInt(m[1]), signal:'S'+m[2] };
+  // DAC
+  if ((m = funcName.match(/^DAC(\d+)_OUT/))) return { group:'DAC', instance:parseInt(m[1]), signal:'OUT' };
+  // ACMP with instance
+  if ((m = funcName.match(/^ACMP(\d+)_(.+)/))) return { group:'ACMP', instance:parseInt(m[1]), signal:m[2] };
+  // ACMP without instance (legacy naming)
+  if ((m = funcName.match(/^ACMP_(.+)/))) return { group:'ACMP', instance:0, signal:m[1] };
+  // ETM
+  if ((m = funcName.match(/^ETM_(.+)$/))) return { group:'ETM', instance:0, signal:m[1] };
+  // SENT with instance
+  if ((m = funcName.match(/^SENT(\d+)_(.+)$/))) return { group:'SENT', instance:parseInt(m[1]), signal:m[2] };
+  // SENT without instance
+  if ((m = funcName.match(/^SENT_(.+)$/))) return { group:'SENT', instance:0, signal:m[1] };
+  // FMU
+  if ((m = funcName.match(/^FMU_(.+)$/))) return { group:'FMU', instance:0, signal:m[1] };
+  // CLKOUT variants
+  if ((m = funcName.match(/^(SCU_CLKOUT|CLKOUT_RUN|CLKOUT_STANDBY|RTC_CLKOUT|CFMU_CLKOUT|CLKOUT)$/))) return { group:'CLKOUT', instance:0, signal:m[1] };
+  // RTC_CLKIN
+  if ((m = funcName.match(/^RTC_CLKIN$/))) return { group:'CLKOUT', instance:0, signal:'RTC_CLKIN' };
+  // LPTMR (case insensitive to catch lpTMR / LPTMR)
+  if ((m = funcName.match(/^lptmr(\d+)_alt(\d+)$/i))) return { group:'LPTMR', instance:parseInt(m[1]), signal:'ALT'+m[2] };
+  // TCLK
+  if ((m = funcName.match(/^TCLK_(.+)$/))) return { group:'TCLK', instance:0, signal:m[1] };
+  // JTAG / SWD (also matches combined names like JTAG_TCK/SWD_CLK)
+  if ((m = funcName.match(/^(JTAG_.*|SWD_.*|SWO)/))) return { group:'JTAG', instance:0, signal:m[1] };
+  // SWD standalone
+  if ((m = funcName.match(/^swd_(.+)$/i))) return { group:'JTAG', instance:0, signal:m[1] };
+  return null;
+}
+
+// ======================== Helpers ========================
+function currentChip() {
+  return state.chipName ? (PINMUX_DATA[state.chipName] || null) : null;
+}
+
+function getVisiblePins() {
+  const chip = currentChip();
+  if (!chip) return [];
+  const pkg = state.packageName;
+  let pins = chip.pins.filter(p => {
+    // If a package is selected, only show pins that exist in that package
+    if (pkg && !(pkg in p.packagePins)) return false;
+    if (state.filterText) {
+      const ft = state.filterText.toLowerCase();
+      const nameMatch = p.name.toLowerCase().includes(ft);
+      const funcMatch = p.altFunctions.some(f => f.toLowerCase().includes(ft));
+      if (!nameMatch && !funcMatch) return false;
+    }
+    return true;
+  });
+  pins.sort((a, b) => {
+    const na = pkg ? (a.packagePins[pkg] || 9999) : 0;
+    const nb = pkg ? (b.packagePins[pkg] || 9999) : 0;
+    return na - nb;
+  });
+  return pins;
+}
+
+function getSelectedFunc(pinName) {
+  return state.pinConfigs[pinName] || null;
+}
+
+// ======================== Conflict Detection ========================
+function detectConflicts() {
+  const usage = {}; // { funcName: [pinName, ...] }
+  for (const [pinName, funcName] of Object.entries(state.pinConfigs)) {
+    if (!funcName) continue;
+    if (!usage[funcName]) usage[funcName] = [];
+    usage[funcName].push(pinName);
+  }
+  const conflicts = {};
+  for (const [func, pins] of Object.entries(usage)) {
+    if (pins.length > 1) conflicts[func] = pins;
+  }
+  return conflicts;
+}
+
+function getConflictSet() {
+  const s = new Set();
+  const conflicts = detectConflicts();
+  for (const pins of Object.values(conflicts)) {
+    for (const p of pins) s.add(p);
+  }
+  return s;
+}
+
+// ======================== Render: Chip & Package Selectors ========================
+function renderSelectors() {
+  const chipSel = document.getElementById('chipSelect');
+  chipSel.innerHTML = '<option value="">-- 选择芯片 --</option>';
+  const chipNames = Object.keys(PINMUX_DATA).sort();
+  for (const name of chipNames) {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    if (name === state.chipName) opt.selected = true;
+    chipSel.appendChild(opt);
+  }
+
+  const pkgSel = document.getElementById('packageSelect');
+  pkgSel.innerHTML = '<option value="">-- 选择封装 --</option>';
+  const chip = currentChip();
+  if (chip) {
+    for (const pkg of chip.packages) {
+      const opt = document.createElement('option');
+      opt.value = pkg;
+      opt.textContent = pkg;
+      if (pkg === state.packageName) opt.selected = true;
+      pkgSel.appendChild(opt);
+    }
+  }
+}
+
+// ======================== Render: Pin Table ========================
+function renderPinTable() {
+  const tbody = document.getElementById('pinTableBody');
+  const empty = document.getElementById('emptyState');
+  const chip = currentChip();
+  if (!chip) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const pins = getVisiblePins();
+  const conflicts = getConflictSet();
+  let configuredCount = 0;
+
+  tbody.innerHTML = pins.map(pin => {
+    const pkg = state.packageName;
+    const pinNum = pkg ? (pin.packagePins[pkg] || '-') : '-';
+    const curFunc = getSelectedFunc(pin.name);
+    if (curFunc) configuredCount++;
+    const isConflict = conflicts.has(pin.name);
+    const isSpecial = (pin.type === 'POWER' || pin.type === 'GND' || pin.type === 'CLOCK' || pin.type === 'DEBUG');
+    const readOnly = (pin.type === 'POWER' || pin.type === 'GND');
+
+    let rowClass = '';
+    if (isConflict) rowClass = 'row-conflict';
+    else if (curFunc) rowClass = 'row-configured';
+    else if (pin.type === 'POWER') rowClass = 'row-power';
+    else if (pin.type === 'GND') rowClass = 'row-gnd';
+    else if (pin.type === 'CLOCK') rowClass = 'row-clock';
+    else if (pin.type === 'DEBUG') rowClass = 'row-debug';
+
+    // Highlight pins matching selected peripheral
+    let isHighlighted = false;
+    if (state.highlightGroup) {
+      for (const f of pin.altFunctions) {
+        const p = parsePeriph(f);
+        if (!p || p.group !== state.highlightGroup) continue;
+        if (state.highlightSignal) {
+          // Signal-level: exact group + instance + signal match
+          if (p.instance === state.highlightInstance && p.signal === state.highlightSignal) {
+            isHighlighted = true;
+            break;
+          }
+        } else {
+          // Instance-level: group + instance match
+          if (state.highlightInstance === null || p.instance === state.highlightInstance) {
+            isHighlighted = true;
+            break;
+          }
+        }
+      }
+    }
+    if (isHighlighted) rowClass += ' row-highlighted';
+
+    // Build map: function name → pin that uses it (for current pin's dropdown)
+    const funcUsedBy = {};
+    for (const [pn, fn] of Object.entries(state.pinConfigs)) {
+      if (fn && pn !== pin.name) funcUsedBy[fn] = pn;
+    }
+
+    const funcOptions = readOnly
+      ? `<span class="default-func">${pin.altFunctions[0] || pin.name}</span>`
+      : `<select class="func-select" data-pin="${pin.name}" onchange="onFuncChange(this, '${pin.name}')">
+           <option value="">未配置</option>
+           ${pin.altFunctions.map(f => {
+             const sel = (f === curFunc) ? ' selected' : '';
+             const cls = (f === pin.altFunctions[0]) ? ' class="default-func"' : '';
+             const usedBy = funcUsedBy[f];
+             if (usedBy) {
+               return `<option value="${escapeHtml(f)}" disabled style="color:#d93025;">${escapeHtml(f)} (→ ${usedBy})</option>`;
+             }
+             return `<option value="${escapeHtml(f)}"${sel}${cls}>${escapeHtml(f)}</option>`;
+           }).join('')}
+         </select>`;
+
+    // Build PIN_MUX cell: show all alt functions, selected one in red
+    const pinmuxCell = pin.altFunctions.map(f => {
+      if (f === curFunc) return `<span class="pinmux-selected">${escapeHtml(f)}</span>`;
+      return `<span class="pinmux-func">${escapeHtml(f)}</span>`;
+    }).join('<span class="pinmux-sep"> / </span>');
+
+    const note = state.pinNotes[pin.name] || '';
+
+    return `<tr class="${rowClass}" data-pin="${pin.name}" onclick="onPinRowClick('${pin.name}')">
+      <td class="pin-num">${pinNum}</td>
+      <td class="pin-name">${pin.name}</td>
+      <td class="pinmux-col">${pinmuxCell}</td>
+      <td>${funcOptions}</td>
+      <td onclick="event.stopPropagation()"><input class="note-input" data-pin="${pin.name}" value="${escapeHtml(note)}" placeholder="输入备注..." oninput="onNoteChange(this, '${pin.name}')"></td>
+      <td>${pin.drive || '-'}</td>
+      <td>${pin.wku || '-'}</td>
+      <td>${pin.defaultState || '-'}</td>
+    </tr>`;
+  }).join('');
+
+  updateFooter(configuredCount, pins.length, conflicts);
+}
+
+function pinTypeLabel(type) {
+  const map = { GPIO:'GPIO', POWER:'电源', GND:'地', CLOCK:'时钟', DEBUG:'调试', OTHER:'其他' };
+  return map[type] || type;
+}
+
+function onFuncChange(sel, pinName) {
+  const val = sel.value;
+  const prevFunc = getSelectedFunc(pinName);
+  if (!assignFunc(pinName, val || null)) {
+    // Blocked: revert select to previous value
+    sel.value = prevFunc || '';
+  }
+}
+
+function onNoteChange(input, pinName) {
+  const val = input.value.trim();
+  state.pinNotes[pinName] = val || null;
+}
+
+function assignFunc(pinName, func) {
+  // Mutual exclusivity: block if function already used by another pin
+  if (func) {
+    for (const [otherPin, otherFunc] of Object.entries(state.pinConfigs)) {
+      if (otherPin !== pinName && otherFunc === func) {
+        showToast(`功能 ${func} 已被 ${otherPin} 占用，无法重复选择`);
+        return false;
+      }
+    }
+  }
+  state.pinConfigs[pinName] = func;
+  refreshAll();
+  return true;
+}
+
+function showToast(msg) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function onPinRowClick(pinName) {
+  state.selectedPin = pinName;
+  renderPinDetail();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ======================== Render: Pin Detail ========================
+function renderPinDetail() {
+  const container = document.getElementById('pinDetailContent');
+  const chip = currentChip();
+  if (!state.selectedPin || !chip) {
+    container.innerHTML = '<p style="color:#999;">点击表格中的行查看引脚详情</p>';
+    return;
+  }
+  const pin = chip.pins.find(p => p.name === state.selectedPin);
+  if (!pin) return;
+
+  const curFunc = getSelectedFunc(pin.name);
+  const pkg = state.packageName;
+  const pinNum = pkg ? (pin.packagePins[pkg] || '-') : '-';
+
+  container.innerHTML = `
+    <div class="detail-item">
+      <div class="detail-label">引脚名称</div>
+      <div class="detail-value" style="font-size:18px;font-weight:700;">${pin.name}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">封装引脚号</div>
+      <div class="detail-value">${pinNum} (${pkg || '未选封装'})</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">类型</div>
+      <div class="detail-value">${pinTypeLabel(pin.type)}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">驱动能力</div>
+      <div class="detail-value">${pin.drive || '-'}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">WKU</div>
+      <div class="detail-value">${pin.wku || '无'}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">默认状态</div>
+      <div class="detail-value">${pin.defaultState || '-'}</div>
+    </div>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
+      <div class="detail-label" style="margin-bottom:6px;">可用功能</div>
+      <ul class="alt-list">
+        ${pin.altFunctions.map(f => {
+          const sel = (f === curFunc) ? ' selected' : '';
+          return `<li class="${sel}" onclick="selectAlt('${pin.name}', '${escapeHtml(f)}')">
+            ${escapeHtml(f)}
+          </li>`;
+        }).join('')}
+      </ul>
+    </div>
+  `;
+}
+
+function selectAlt(pinName, func) {
+  if (state.pinConfigs[pinName] === func) {
+    assignFunc(pinName, null);
+  } else {
+    assignFunc(pinName, func);
+  }
+}
+
+// ======================== Render: Peripheral Tree ========================
+function buildPeriphMap() {
+  const chip = currentChip();
+  if (!chip) return {};
+
+  const periphMap = {}; // { group: { instance: { signal: pinName } } }
+  for (const pin of chip.pins) {
+    const func = getSelectedFunc(pin.name);
+    const funcs = func ? [func] : [];
+    for (const f of funcs) {
+      const parsed = parsePeriph(f);
+      if (!parsed) continue;
+      const g = parsed.group;
+      const i = parsed.instance;
+      const s = parsed.signal;
+      if (!periphMap[g]) periphMap[g] = {};
+      if (!periphMap[g][i]) periphMap[g][i] = {};
+      periphMap[g][i][s] = pin.name;
+    }
+  }
+  return periphMap;
+}
+
+function buildAllPeriphMap() {
+  const chip = currentChip();
+  if (!chip) return {};
+  const pkg = state.packageName;
+  // Scan ALL altFunctions (not just configured ones) to discover every peripheral instance
+  const allMap = {}; // { group: { instance: { signal: [pinName, ...] } } }
+  for (const pin of chip.pins) {
+    // Filter by selected package
+    if (pkg && !(pkg in pin.packagePins)) continue;
+    for (const f of pin.altFunctions) {
+      const parsed = parsePeriph(f);
+      if (!parsed) continue;
+      const { group, instance, signal } = parsed;
+      if (!allMap[group]) allMap[group] = {};
+      if (!allMap[group][instance]) allMap[group][instance] = {};
+      if (!allMap[group][instance][signal]) allMap[group][instance][signal] = [];
+      allMap[group][instance][signal].push(pin.name);
+    }
+  }
+  return allMap;
+}
+
+function getPeriphSignals(group) {
+  const def = PERIPHERAL_DEFS.find(d => d.group === group);
+  if (def && def.signals) return def.signals;
+  return null; // dynamic
+}
+
+function renderPeriphTree() {
+  const container = document.getElementById('periphTreeContent');
+  const allMap = buildAllPeriphMap();
+  const configuredMap = buildPeriphMap();
+  const chip = currentChip();
+  const selGroup = state.highlightGroup;
+  const selInst = state.highlightInstance;
+
+  if (!chip) {
+    container.innerHTML = '<p style="padding:14px;color:#999;">请先选择芯片</p>';
+    return;
+  }
+
+  const groupOrder = ['SPI','UART','CAN','eTMR','I2C','MPWM','QSPI','ENET','SAI','ADC','DAC','ACMP','TMU','ETM','SENT','FMU','CLKOUT','LPTMR','TCLK','JTAG'];
+  const groups = Object.keys(allMap).sort((a,b) => {
+    const ia = groupOrder.indexOf(a), ib = groupOrder.indexOf(b);
+    if (ia >= 0 && ib >= 0) return ia - ib;
+    if (ia >= 0) return -1;
+    if (ib >= 0) return 1;
+    return a.localeCompare(b);
+  });
+
+  let html = '';
+  for (const group of groups) {
+    const instances = allMap[group];
+    const instKeys = Object.keys(instances).sort((a,b) => a-b);
+
+    // Compute group-level stats from configuredMap
+    let totalSigSlots = 0, mappedSigs = 0;
+    const cfgInstances = configuredMap[group] || {};
+    for (const inst of instKeys) {
+      const sigs = instances[inst];
+      const cfgSigs = cfgInstances[inst] || {};
+      for (const sig of Object.keys(sigs)) {
+        totalSigSlots++;
+        if (cfgSigs[sig]) mappedSigs++;
+      }
+    }
+    let statusCls = '';
+    if (mappedSigs === 0) statusCls = '';
+    else if (mappedSigs < totalSigSlots) statusCls = 'partial';
+    else statusCls = 'complete';
+
+    // Auto-expand group if it's selected
+    const isGroupSelected = (selGroup === group && selInst === null);
+    const isGroupRelated = (selGroup === group);
+    html += `<div class="periph-group">
+      <div class="periph-group-header" onclick="togglePeriphGroup(this)">
+        <span class="arrow${isGroupSelected ? ' open' : ''}"></span>
+        <span class="group-name">${group} (${instKeys.length})</span>
+        <span class="group-status ${statusCls}"></span>
+      </div>
+      <div class="periph-children${isGroupSelected || isGroupRelated ? ' open' : ''}">`;
+    for (const inst of instKeys) {
+      const sigs = instances[inst];
+      const cfgSigs = cfgInstances[inst] || {};
+      const isActive = (selGroup === group && selInst === inst);
+
+      html += `<div class="periph-instance${isActive ? ' active' : ''}" onclick="event.stopPropagation();selectPeriphInstance('${group}', ${inst})">${group}${inst}</div>`;
+      for (const [sig, pins] of Object.entries(sigs)) {
+        const configuredPin = cfgSigs[sig] || null;
+        const pinText = configuredPin || pins.join(',');
+        const mappedCls = configuredPin ? '' : 'unmapped';
+        html += `<div class="periph-signal" onclick="event.stopPropagation();selectPeriphInstance('${group}', ${inst}, '${sig}', '${configuredPin || pins[0] || ''}')">
+          <span class="signal-name">${sig}</span>
+          <span class="signal-pin ${mappedCls}">${pinText}</span>
+        </div>`;
+      }
+    }
+    html += '</div></div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function selectPeriphInstance(group, instance, signal, jumpToPinName) {
+  // Toggle off if clicking the exact same item again
+  if (state.highlightGroup === group && state.highlightInstance === instance && state.highlightSignal === signal) {
+    state.highlightGroup = null;
+    state.highlightInstance = null;
+    state.highlightSignal = null;
+  } else {
+    state.highlightGroup = group;
+    state.highlightInstance = instance;
+    state.highlightSignal = signal || null;
+  }
+  refreshAll();
+  if (jumpToPinName) {
+    const row = document.querySelector('tr[data-pin="' + jumpToPinName + '"]');
+    if (row) row.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+}
+
+function togglePeriphGroup(header) {
+  const arrow = header.querySelector('.arrow');
+  const children = header.nextElementSibling;
+  const isOpen = children.classList.contains('open');
+  if (isOpen) {
+    arrow.classList.remove('open');
+    children.classList.remove('open');
+  } else {
+    arrow.classList.add('open');
+    children.classList.add('open');
+  }
+}
+
+function jumpToPin(pinName) {
+  if (!pinName) return;
+  state.selectedPin = pinName;
+  renderPinDetail();
+  const row = document.querySelector('tr[data-pin="' + pinName + '"]');
+  if (row) row.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+// ======================== Footer ========================
+function updateFooter(configuredCount, totalPins, conflicts) {
+  document.getElementById('footerConfigured').textContent = `已配置: ${configuredCount}`;
+  const conflictCount = Object.keys(conflicts).length;
+  const conflictEl = document.getElementById('footerConflicts');
+  if (conflictCount > 0) {
+    conflictEl.style.display = 'inline';
+    conflictEl.textContent = `冲突: ${conflictCount}`;
+  } else {
+    conflictEl.style.display = 'none';
+  }
+  document.getElementById('footerUnconfigured').textContent = `未配置: ${totalPins - configuredCount}`;
+  document.getElementById('footerChip').textContent = state.chipName ? `${state.chipName} / ${state.packageName || '未选封装'}` : '';
+
+  const statsText = document.getElementById('statsText');
+  let statsHtml = `引脚: ${totalPins} | 已配置: ${configuredCount}`;
+  if (conflictCount > 0) statsHtml += ` | ⚠ 冲突: ${conflictCount}`;
+  statsText.innerHTML = statsHtml;
+}
+
+// ======================== Export ========================
+function exportHTML() {
+  const chip = currentChip();
+  if (!chip) return alert('请先选择芯片');
+  const pins = getVisiblePins();
+  const pkg = state.packageName || 'N/A';
+
+  let rows = '';
+  for (const pin of pins) {
+    const pinNum = state.packageName ? (pin.packagePins[state.packageName] || '') : '';
+    const selFunc = getSelectedFunc(pin.name) || '';
+    const pinmuxStr = pin.altFunctions.map(f => {
+      if (f === selFunc) return `<span style="color:#d93025;font-weight:700;">${f}</span>`;
+      return `<span style="color:#999;">${f}</span>`;
+    }).join(' <span style="color:#ccc;">/</span> ');
+
+    const note = (state.pinNotes[pin.name] || '');
+    rows += `<tr>
+      <td style="text-align:center;">${pinNum}</td>
+      <td style="font-weight:600;">${pin.name}</td>
+      <td style="font-size:12px;max-width:450px;">${pinmuxStr}</td>
+      <td style="font-weight:600;color:${selFunc ? '#1a73e8' : '#999'};">${selFunc || '未配置'}</td>
+      <td>${escapeHtml(note)}</td>
+      <td>${pin.drive||'-'}</td>
+      <td>${pin.wku||'-'}</td>
+      <td>${pin.defaultState||'-'}</td>
+    </tr>`;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>${state.chipName}_${pkg}_引脚配置</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;margin:20px;color:#333;}
+h1{font-size:18px;margin-bottom:4px;}
+h2{font-size:13px;color:#666;font-weight:400;margin:0 0 16px 0;}
+table{border-collapse:collapse;width:100%;}
+th{background:#f8f9fa;border-bottom:2px solid #ddd;padding:8px 10px;text-align:left;font-size:12px;white-space:nowrap;}
+td{padding:5px 10px;border-bottom:1px solid #eee;white-space:nowrap;}
+tr:nth-child(even){background:#fafafa;}
+.footer{margin-top:16px;font-size:11px;color:#999;}
+</style>
+</head>
+<body>
+<h1>${state.chipName} 引脚配置</h1>
+<h2>封装: ${pkg} | 导出时间: ${new Date().toLocaleString('zh-CN')}</h2>
+<table>
+<thead><tr>
+  <th>引脚号</th><th>引脚名</th><th>PIN_MUX</th><th>选中功能</th><th>备注</th><th>驱动能力</th><th>WKU</th><th>默认状态</th>
+</tr></thead>
+<tbody>${rows}</tbody>
+</table>
+<div class="footer">由 YTM32 PinMux 工具生成 | ${state.chipName} | 共 ${pins.length} 个引脚</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type:'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${state.chipName}_${pkg}_pinmux.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportExcel() {
+  const chip = currentChip();
+  if (!chip) return alert('请先选择芯片');
+  const pins = getVisiblePins();
+  const pkg = state.packageName || 'N/A';
+
+  let rows = '';
+  for (const pin of pins) {
+    const pinNum = state.packageName ? (pin.packagePins[state.packageName] || '') : '';
+    const selFunc = getSelectedFunc(pin.name) || '';
+    // Build PIN_MUX: all functions, selected one in red
+    const pinmuxStr = pin.altFunctions.map(f => {
+      if (f === selFunc) return `<span style="color:#d93025;font-weight:700;">${f}</span>`;
+      return `<span style="color:#999;">${f}</span>`;
+    }).join(' <span style="color:#ccc;">/</span> ');
+
+    const selStyle = selFunc ? 'color:#1a73e8;font-weight:700;' : 'color:#999;';
+    const note = (state.pinNotes[pin.name] || '');
+    rows += `<tr>
+      <td style="text-align:center;">${pinNum}</td>
+      <td style="font-weight:600;">${pin.name}</td>
+      <td style="font-size:11px;">${pinmuxStr}</td>
+      <td style="${selStyle}">${selFunc || '未配置'}</td>
+      <td>${escapeHtml(note)}</td>
+      <td>${pin.drive||'-'}</td>
+      <td>${pin.wku||'-'}</td>
+      <td>${pin.defaultState||'-'}</td>
+    </tr>`;
+  }
+
+  const excelHTML = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<!--[if gte mso 9]><xml><x:ExcelWorkbook>
+<x:ExcelWorksheets><x:ExcelWorksheet>
+<x:Name>${state.chipName}</x:Name>
+<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+</x:ExcelWorksheet></x:ExcelWorksheets>
+</x:ExcelWorkbook></xml><![endif]-->
+<style>
+body{font-family:'Microsoft YaHei',SimSun,sans-serif;font-size:12px;margin:10px;color:#333;}
+h1{font-size:16px;margin-bottom:4px;}
+h2{font-size:11px;color:#666;font-weight:400;margin:0 0 12px 0;}
+table{border-collapse:collapse;width:100%;}
+th{background:#f8f9fa;border:1px solid #ccc;padding:6px 8px;text-align:left;font-size:11px;white-space:nowrap;}
+td{border:1px solid #ddd;padding:4px 8px;white-space:nowrap;}
+tr:nth-child(even){background:#fafafa;}
+.footer{margin-top:12px;font-size:10px;color:#999;}
+</style>
+</head>
+<body>
+<h1>${state.chipName} 引脚配置</h1>
+<h2>封装: ${pkg} | 导出时间: ${new Date().toLocaleString('zh-CN')}</h2>
+<table>
+<thead><tr>
+  <th>引脚号</th><th>引脚名</th><th>PIN_MUX</th><th>选中功能</th><th>备注</th><th>驱动能力</th><th>WKU</th><th>默认状态</th>
+</tr></thead>
+<tbody>${rows}</tbody>
+</table>
+<div class="footer">由 YTM32 PinMux 工具生成 | ${state.chipName} | 共 ${pins.length} 个引脚</div>
+</body>
+</html>`;
+
+  const blob = new Blob([excelHTML], { type:'application/vnd.ms-excel;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${state.chipName}_${pkg}_pinmux.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ======================== Event Handlers ========================
+document.getElementById('chipSelect').addEventListener('change', function() {
+  state.chipName = this.value;
+  state.packageName = '';
+  state.pinConfigs = {};
+  state.pinNotes = {};
+  state.selectedPin = null;
+  state.highlightGroup = null;
+  state.highlightInstance = null;
+  state.highlightSignal = null;
+  renderSelectors();
+  refreshAll();
+});
+
+document.getElementById('packageSelect').addEventListener('change', function() {
+  state.packageName = this.value;
+  refreshAll();
+});
+
+document.getElementById('filterInput').addEventListener('input', function() {
+  state.filterText = this.value;
+  renderPinTable();
+  renderPinDetail();
+});
+
+document.getElementById('exportHtmlBtn').addEventListener('click', exportHTML);
+document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
+
+document.getElementById('printBtn').addEventListener('click', function() {
+  window.print();
+});
+
+// ======================== Main ========================
+function refreshAll() {
+  renderPinTable();
+  renderPeriphTree();
+  renderPinDetail();
+  updateStats();
+}
+
+function updateStats() {
+  const pins = getVisiblePins();
+  let configuredCount = 0;
+  for (const pin of pins) {
+    if (getSelectedFunc(pin.name)) configuredCount++;
+  }
+  const conflicts = detectConflicts();
+  updateFooter(configuredCount, pins.length, conflicts);
+}
+
+// ======================== Init ========================
+function init() {
+  if (typeof PINMUX_DATA === 'undefined') {
+    document.getElementById('pinTableBody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--danger);">错误: 未找到 PINMUX_DATA 数据。请确保 pinmux_data.js 已加载。</td></tr>';
+    return;
+  }
+  renderSelectors();
+  refreshAll();
+}
+
+init();
+</script>
+<div class="watermark">Derrick · Deepseek</div>
+</body>
+</html>
