@@ -364,6 +364,75 @@ body {
   .center-table thead th { position: static !important; }
 }
 
+/* Mobile responsive */
+@media (max-width: 768px) {
+  body {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  .toolbar .logo {
+    font-size: 15px;
+    margin-right: 0;
+  }
+  .toolbar select, .toolbar button, .toolbar input {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .toolbar input[type=text] {
+    width: 120px;
+  }
+  .toolbar .spacer {
+    display: none;
+  }
+  .toolbar .stats {
+    font-size: 11px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .main-layout {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    overflow: visible;
+  }
+
+  .sidebar-left,
+  .sidebar-right {
+    width: 100%;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .center-table {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .center-table table {
+    font-size: 11px;
+  }
+  .center-table thead th {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+  .center-table tbody td {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
 /* Toast notification */
 .toast-container {
   position: fixed;
