@@ -5184,10 +5184,12 @@ const PINMUX_DATA = {
     "name": "YTM32B1LE1x"
   },
   "YTM32B1MC0x": {
-    "version": "1.0",
+    "name": "YTM32B1MC0x",
+    "version": "1.1",
     "packages": [
       "64LQFP",
-      "48LQFP"
+      "48LQFP/48QFN",
+      "32QFN"
     ],
     "pins": [
       {
@@ -5195,7 +5197,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 1,
-          "48LQFP": 1
+          "48LQFP/48QFN": 1
         },
         "altFunctions": [
           "PTD_1",
@@ -5211,7 +5213,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 2,
-          "48LQFP": 2
+          "48LQFP/48QFN": 2
         },
         "altFunctions": [
           "PTD_0",
@@ -5255,7 +5257,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 5,
-          "48LQFP": 3
+          "48LQFP/48QFN": 3,
+          "32QFN": 1
         },
         "altFunctions": [
           "PTE_5",
@@ -5272,7 +5275,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 6,
-          "48LQFP": 4
+          "48LQFP/48QFN": 4,
+          "32QFN": 2
         },
         "altFunctions": [
           "PTE_4",
@@ -5289,7 +5293,8 @@ const PINMUX_DATA = {
         "type": "POWER",
         "packagePins": {
           "64LQFP": 7,
-          "48LQFP": 5
+          "48LQFP/48QFN": 5,
+          "32QFN": 3
         },
         "altFunctions": [
           "VDD"
@@ -5300,7 +5305,7 @@ const PINMUX_DATA = {
         "type": "POWER",
         "packagePins": {
           "64LQFP": 8,
-          "48LQFP": 6
+          "48LQFP/48QFN": 6
         },
         "altFunctions": [
           "VDDA"
@@ -5321,7 +5326,8 @@ const PINMUX_DATA = {
         "type": "GND",
         "packagePins": {
           "64LQFP": 10,
-          "48LQFP": 7
+          "48LQFP/48QFN": 7,
+          "32QFN": 4
         },
         "altFunctions": [
           "VSS"
@@ -5332,7 +5338,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 11,
-          "48LQFP": 8
+          "48LQFP/48QFN": 8,
+          "32QFN": 5
         },
         "altFunctions": [
           "EXTAL",
@@ -5347,7 +5354,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 12,
-          "48LQFP": 9
+          "48LQFP/48QFN": 9,
+          "32QFN": 6
         },
         "altFunctions": [
           "XTAL",
@@ -5376,7 +5384,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 14,
-          "48LQFP": 10
+          "48LQFP/48QFN": 10,
+          "32QFN": 7
         },
         "altFunctions": [
           "PTD_16",
@@ -5390,7 +5399,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 15,
-          "48LQFP": 11
+          "48LQFP/48QFN": 11,
+          "32QFN": 8
         },
         "altFunctions": [
           "PTD_15",
@@ -5403,7 +5413,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 16,
-          "48LQFP": 12
+          "48LQFP/48QFN": 12
         },
         "altFunctions": [
           "PTE_9",
@@ -5416,7 +5426,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 17,
-          "48LQFP": 13
+          "48LQFP/48QFN": 13,
+          "32QFN": 9
         },
         "altFunctions": [
           "ACMP0_IN3",
@@ -5429,7 +5440,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 18,
-          "48LQFP": 14
+          "48LQFP/48QFN": 14,
+          "32QFN": 10
         },
         "altFunctions": [
           "PTB_5",
@@ -5438,28 +5450,32 @@ const PINMUX_DATA = {
           "SPI0_PCS0",
           "SCU_CLKOUT",
           "TMU_IN0"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTB_4",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 19,
-          "48LQFP": 15
+          "48LQFP/48QFN": 15,
+          "32QFN": 11
         },
         "altFunctions": [
           "PTB_4",
           "eTMR0_CH4",
           "SPI0_SOUT",
           "TMU_IN1"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTC_3",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 20,
-          "48LQFP": 16
+          "48LQFP/48QFN": 16,
+          "32QFN": 12
         },
         "altFunctions": [
           "ADC0_SE11/ACMP0_IN4",
@@ -5474,7 +5490,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 21,
-          "48LQFP": 17
+          "48LQFP/48QFN": 17,
+          "32QFN": 13
         },
         "altFunctions": [
           "ADC0_SE10/ACMP0_IN5",
@@ -5516,7 +5533,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 24,
-          "48LQFP": 18
+          "48LQFP/48QFN": 18,
+          "32QFN": 14
         },
         "altFunctions": [
           "PTD_5",
@@ -5532,7 +5550,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 25,
-          "48LQFP": 19
+          "48LQFP/48QFN": 19
         },
         "altFunctions": [
           "ADC0_SE9",
@@ -5566,27 +5584,29 @@ const PINMUX_DATA = {
           "ADC0_SE15",
           "PTC_17",
           "eTMR1_FLT3"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTC_16",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 28,
-          "48LQFP": 20
+          "48LQFP/48QFN": 20
         },
         "altFunctions": [
           "ADC0_SE14",
           "PTC_16",
           "eTMR1_FLT2"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTC_15",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 29,
-          "48LQFP": 21
+          "48LQFP/48QFN": 21
         },
         "altFunctions": [
           "ADC0_SE13",
@@ -5601,7 +5621,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 30,
-          "48LQFP": 22
+          "48LQFP/48QFN": 22
         },
         "altFunctions": [
           "ADC0_SE12",
@@ -5616,7 +5636,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 31,
-          "48LQFP": 23
+          "48LQFP/48QFN": 23,
+          "32QFN": 15
         },
         "altFunctions": [
           "ADC0_SE7",
@@ -5632,7 +5653,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 32,
-          "48LQFP": 24
+          "48LQFP/48QFN": 24,
+          "32QFN": 16
         },
         "altFunctions": [
           "ADC0_SE6",
@@ -5648,7 +5670,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 33,
-          "48LQFP": 25
+          "48LQFP/48QFN": 25,
+          "32QFN": 17
         },
         "altFunctions": [
           "ADC0_SE5",
@@ -5665,7 +5688,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 34,
-          "48LQFP": 26
+          "48LQFP/48QFN": 26,
+          "32QFN": 18
         },
         "altFunctions": [
           "ADC0_SE4",
@@ -5681,7 +5705,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 35,
-          "48LQFP": 27
+          "48LQFP/48QFN": 27
         },
         "altFunctions": [
           "PTC_9",
@@ -5689,14 +5713,15 @@ const PINMUX_DATA = {
           "eTMR1_FLT1",
           "eTMR0_FLT1",
           "UART0_RTS"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTC_8",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 36,
-          "48LQFP": 28
+          "48LQFP/48QFN": 28
         },
         "altFunctions": [
           "DAC0_OUT",
@@ -5704,14 +5729,16 @@ const PINMUX_DATA = {
           "UART1_RX",
           "eTMR1_FLT0",
           "UART0_CTS"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTA_7",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 37,
-          "48LQFP": 29
+          "48LQFP/48QFN": 29,
+          "32QFN": 19
         },
         "altFunctions": [
           "ADC0_SE3",
@@ -5752,7 +5779,8 @@ const PINMUX_DATA = {
         "type": "GND",
         "packagePins": {
           "64LQFP": 40,
-          "48LQFP": 30
+          "48LQFP/48QFN": 30,
+          "32QFN": 20
         },
         "altFunctions": [
           "VSS"
@@ -5763,7 +5791,8 @@ const PINMUX_DATA = {
         "type": "POWER",
         "packagePins": {
           "64LQFP": 41,
-          "48LQFP": 31
+          "48LQFP/48QFN": 31,
+          "32QFN": 21
         },
         "altFunctions": [
           "VDD"
@@ -5774,7 +5803,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 42,
-          "48LQFP": 32
+          "48LQFP/48QFN": 32
         },
         "altFunctions": [
           "ADC0_SE24",
@@ -5812,7 +5841,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 45,
-          "48LQFP": 33
+          "48LQFP/48QFN": 33,
+          "32QFN": 22
         },
         "altFunctions": [
           "ADC0_SE19",
@@ -5830,7 +5860,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 46,
-          "48LQFP": 34
+          "48LQFP/48QFN": 34
         },
         "altFunctions": [
           "ADC0_SE18",
@@ -5847,7 +5877,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 47,
-          "48LQFP": 35
+          "48LQFP/48QFN": 35,
+          "32QFN": 23
         },
         "altFunctions": [
           "ADC0_SE17",
@@ -5864,7 +5895,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 48,
-          "48LQFP": 36
+          "48LQFP/48QFN": 36,
+          "32QFN": 24
         },
         "altFunctions": [
           "ADC0_SE16",
@@ -5881,7 +5913,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 49,
-          "48LQFP": 37
+          "48LQFP/48QFN": 37,
+          "32QFN": 25
         },
         "altFunctions": [
           "ADC0_SE1/ACMP0_IN1",
@@ -5898,7 +5931,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 50,
-          "48LQFP": 38
+          "48LQFP/48QFN": 38,
+          "32QFN": 26
         },
         "altFunctions": [
           "ADC0_SE0/ACMP0_IN0",
@@ -5915,7 +5949,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 51,
-          "48LQFP": 39
+          "48LQFP/48QFN": 39,
+          "32QFN": 27
         },
         "altFunctions": [
           "ADC0_SE21",
@@ -5932,7 +5967,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 52,
-          "48LQFP": 40
+          "48LQFP/48QFN": 40,
+          "32QFN": 28
         },
         "altFunctions": [
           "ADC0_SE20",
@@ -5978,7 +6014,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 55,
-          "48LQFP": 41
+          "48LQFP/48QFN": 41
         },
         "altFunctions": [
           "PTA_13",
@@ -5992,7 +6028,7 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 56,
-          "48LQFP": 42
+          "48LQFP/48QFN": 42
         },
         "altFunctions": [
           "PTA_12",
@@ -6006,28 +6042,30 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 57,
-          "48LQFP": 43
+          "48LQFP/48QFN": 43
         },
         "altFunctions": [
           "PTA_11",
           "eTMR1_CH5",
           "ACMP0_ACTIVE",
           "I2C1_SCL"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTA_10",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 58,
-          "48LQFP": 44
+          "48LQFP/48QFN": 44
         },
         "altFunctions": [
           "PTA_10",
           "eTMR1_CH4",
           "I2C1_SDA",
           "JTAG_TDO_SWD_SWO"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTE_1",
@@ -6041,7 +6079,8 @@ const PINMUX_DATA = {
           "I2C1_SCL",
           "SPI1_PCS0",
           "eTMR1_FLT1"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTE_0",
@@ -6056,14 +6095,16 @@ const PINMUX_DATA = {
           "I2C1_SDA",
           "SPI1_SOUT",
           "eTMR1_FLT2"
-        ]
+        ],
+        "drive": "NORMAL"
       },
       {
         "name": "PTC_5",
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 61,
-          "48LQFP": 45
+          "48LQFP/48QFN": 45,
+          "32QFN": 29
         },
         "altFunctions": [
           "PTC_5",
@@ -6076,7 +6117,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 62,
-          "48LQFP": 46
+          "48LQFP/48QFN": 46,
+          "32QFN": 30
         },
         "altFunctions": [
           "ACMP0_IN2",
@@ -6092,7 +6134,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 63,
-          "48LQFP": 47
+          "48LQFP/48QFN": 47,
+          "32QFN": 31
         },
         "altFunctions": [
           "PTA_5",
@@ -6106,7 +6149,8 @@ const PINMUX_DATA = {
         "type": "GPIO",
         "packagePins": {
           "64LQFP": 64,
-          "48LQFP": 48
+          "48LQFP/48QFN": 48,
+          "32QFN": 32
         },
         "altFunctions": [
           "PTA_4",
@@ -6115,8 +6159,7 @@ const PINMUX_DATA = {
           "JTAG_TMS_SWD_IO"
         ]
       }
-    ],
-    "name": "YTM32B1MC0x"
+    ]
   },
   "YTM32B1MD1x": {
     "version": "1.0",
